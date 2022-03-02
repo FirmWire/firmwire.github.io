@@ -177,6 +177,8 @@ Presume you want to take a snapshot with the name <code>my_first_snapshot</code>
 For taking the snapshot from commandline, simply run <code>./firmwire.py --snapshot-at 0x464d5752,my_first_snapshot modem_file</code>.
 When using interactive exploration, you will have directly access to the python <code>machine</code> object via <code>self</code>. Make sure to stop execution at the desired address (for instance by setting a breakpoint), and then execute: <code>self.snapshot(&quot;my_first_snapshot&quot;)</code>. 
 Alternatively, if you don't want to manually steer execution, you can also use <code>self.snapshot_state_at_address(0x464d5752, &quot;my_first_snapshot&quot;)</code>.</p>
+<p>For starting execution from this snapshot during the next start of FirmWire, all you will need to is <code>./firmwire.py --restore-snapshot my_first_snapshot modem_file</code>.
+If you use interactive exploration, you can even restore snapshots on-the-fly, without the need to restart the emulator! In this case, you would need to execute <code>self.restore_snapshot(&quot;my_first_snapshot&quot;)</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="patterndb"><a class="header" href="#patterndb">PatternDB</a></h1>
 <p>PatternDB is a convienent way to define memory patterns which FirmWire uses to scan the binary baseband firmware during load-time.
 You you can think about FirmWire memory patterns as binary regexes tailored towards firmware analysis tasks.
