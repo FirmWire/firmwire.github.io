@@ -138,8 +138,24 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="interactive-exploration"><a class="header" href="#interactive-exploration">Interactive Exploration</a></h1>
-<h2 id="ipython"><a class="header" href="#ipython">IPython</a></h2>
+<p>FirmWire has multiple ways to facilitate interactive exploration of the emulated baseband firmware.
+The reason for such exploration are various, ranging from aiding static reverse engineering over observing the baseband's behavior when receiving custom messages to root-cause analysis for crashing inputs.</p>
 <h2 id="gdb"><a class="header" href="#gdb">GDB</a></h2>
+<p>The most classic way to interact with the emulated baseband is via GDB.
+Simply start FirmWire with the <code>-s/--gdb-server</code> flag while specifying a port number to start a gdb server!
+Then, you can start up your local gdb build (we recommend <code>gdb-multiarch</code> for Ubuntu 20.04) and connect to the emulated baseband by executing from within gdb:</p>
+<pre><code>target remote :PORT
+</code></pre>
+<p>Alternatively, when using gdb together with <a href="https://gef.readthedocs.io/">gef</a>, we suggest to run the following for better usability instead:</p>
+<pre><code>gef-remote --qemu-mode 127.0.0.1:PORT
+</code></pre>
+<p>Once connected, you should be able to set breakpoints, inspect and modify memory, as well as steering execution just as usual.
+Under the hood, FirmWire spawns a gdb server provided by the corresponding <a href="https://github.com/avatartwo/avatar2/blob/main/avatar2/plugins/gdbserver.py">avatar2 plugin</a>. This allows to transparently access both the memory provided by avatar-backed memory ranges (as in the case of  python peripherals), and emulated memory provided by PANDA.</p>
+<p>What's more, via gdb's <code>monitor</code> command you have directly access to the Python context of avatar2 gdb server, and allows you to execute simple Python statements. You even can access the global avatar object from gdb by executing:</p>
+<pre><code>monitor self.avatar
+</code></pre>
+<p>However, if you are really eager to control FirmWire's, and the emulated baseband's, execution state from Python, we recommend using IPython as described below.</p>
+<h2 id="ipython"><a class="header" href="#ipython">IPython</a></h2>
 <h2 id="guestlink"><a class="header" href="#guestlink">GuestLink</a></h2>
 
                     </main>
