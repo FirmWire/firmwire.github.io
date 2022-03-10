@@ -155,8 +155,37 @@ Under the hood, FirmWire spawns a gdb server provided by the corresponding <a hr
 <pre><code>monitor self.avatar
 </code></pre>
 <p>However, if you are really eager to control FirmWire's, and the emulated baseband's, execution state from Python, we recommend using IPython as described below.</p>
-<h2 id="ipython"><a class="header" href="#ipython">IPython</a></h2>
-<h2 id="guestlink"><a class="header" href="#guestlink">GuestLink</a></h2>
+<h2 id="console"><a class="header" href="#console">Console</a></h2>
+<p>FirmWire offers a second convenient way for controlling execution: a IPython/jupyter console interface. To invoke it, run FirmWire with the <code>--console</code> flag:</p>
+<pre><code>$ python3 firmwire.py modem.bin --console
+</code></pre>
+<p>Then, after initial FirmWire startup, you can connect to the console from the second terminal:</p>
+<pre><code>$ jupyter-console --existing
+</code></pre>
+<p>In here, you have full access to FirmWire's API, and your main interface to interact with the emulated baseband is its <code>machine</code> abstraction, which is directly accessible via <code>self</code>.</p>
+<p>While explaining the full API and available functions would be to extensive for this guide, below are the most important objects and methods provided by firmwire's machine object.</p>
+<table><thead><tr><th>Object</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>self.avatar</code></td><td>The avatar object, providing information about memory ranges and python peripherals</td></tr>
+<tr><td><code>self.loader</code></td><td>The vendor specific loader, providing information about the loaded firmware image.</td></tr>
+<tr><td><code>self.loader.symbol_table</code></td><td>The symbols extracted by the loader, using <a href="pattern_db.html">patternDB</a> and auxiliary information.</td></tr>
+<tr><td><code>self.modkit</code></td><td>Handle to FirmWire's <a href="modkit.html">modkit</a></td></tr>
+<tr><td><code>self.panda</code></td><td>Handle to libpanda, the PANDA library with python bindings</td></tr>
+<tr><td><code>self.qemu</code></td><td>Direct handle to avatar's PyPanda target, the avatar wrapper around libpanda. Follows avatar2's target API.</td></tr>
+</tbody></table>
+<p>To steer execution and inspecting memory, the <code>self.qemu</code> object will most likely be your bread and butter.
+It provides functions such as <code>cont()</code>, <code>stop()</code>, <code>set_breakpoint()</code>, <code>read_memory()</code> or <code>write_memory()</code> - more information can be found over in handbook for <a href="">avatar2</a>.</p>
+<p>Besides these objects and capabilities provided by the PANDA and avatar2 frameworks, the FirmWire also provide a couple of additional methods to make exploration easier:</p>
+<table><thead><tr><th>Method/Signature</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>self.get_tasks()</code></td><td>Retrieves the RTOS tasks automatically identified by FirmWire in its abstract Python representation.</td></tr>
+<tr><td><code>self.get_peripheral(name)</code></td><td>Retrieve a handle to the Python peripheral with specified name.</td></tr>
+<tr><td><code>self.restore_snapshot(snapshot_name)</code></td><td>Restores <a href="workspaces.html">Snapshot</a> with given name.</td></tr>
+<tr><td><code>self.run_for(t)</code></td><td>If the machine is stopped, continue execution for <code>t</code> seconds.</td></tr>
+<tr><td><code>self.snapshot(snapshot_name)</code></td><td>Create snapshot of current execution state with given name.</td></tr>
+<tr><td><code>self.set_breakpoint(address, handler)</code></td><td>Set a breakpoint at specified address and execute the code provided in <code>handler</code> when hit.</td></tr>
+</tbody></table>
+<p>For Shannon basebands, the interactive capabilities are further extended by the special GuestLink peripheral.</p>
+<h2 id="guestlink-shannon-only"><a class="header" href="#guestlink-shannon-only">GuestLink (Shannon only)</a></h2>
+<p>The GuestLink is a combination of custom task injected into the baseband and python peripheral, allowing for <em>interaction</em> with the emulated baseband.</p>
 
                     </main>
 
