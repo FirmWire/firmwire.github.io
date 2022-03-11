@@ -183,12 +183,40 @@ Then, select <code>From Dockerfile</code>, which should automatically create a <
 All you have to run after <a href="installation.html">installation</a> is:</p>
 <pre><code>$ ./firmwire.py modem.bin
 </code></pre>
-<p>This will automatically attempt to create an emulation environment for the selected modem file and kick off emulation!
-Currently, FirmWire supports a subset of MediaTek MTK and Samsung Shannon firmware images.</p>
-<p>Please note that FirmWire requires a couple different tcp ports for its operation. If you have any restrictions on which ports can be used, please use the <code>--consecutive-ports</code> flag to specify which ports can be used.
-For instance, if ports 10000-10005 are free to use on your system, invoke firmwire as follows:</p>
-<pre><code>$ ./firmwire.py --consecutive-ports 100000 modem.bin
+<p>This will automatically recognize the firmware, unpack it, and select a loader and machine to run it.
+You can also load firmware from a URL to get started:</p>
+<pre><code>$ ./firmwire.py https://github.com/grant-h/ShannonFirmware/raw/master/modem_files/CP_G973FXXU3ASG8_CP13372649_CL16487963_QB24948473_REV01_user_low_ship.tar.md5.lz4
 </code></pre>
+<p>Currently, FirmWire supports a subset of MediaTek MTK and Samsung Shannon firmware images.</p>
+<p>Please note that FirmWire requires a couple different TCP ports for its operation. If you have any restrictions on which ports can be used, please use the <code>--consecutive-ports</code> flag to specify which ports can be used.
+For instance, if ports 10000-10005 are free to use on your system, invoke FirmWire as follows:</p>
+<pre><code>$ ./firmwire.py --consecutive-ports 10000 modem.bin
+</code></pre>
+<h2 id="supported-images"><a class="header" href="#supported-images">Supported Images</a></h2>
+<h3 id="mediatek"><a class="header" href="#mediatek">MediaTek</a></h3>
+<ul>
+<li>Samsung A10s (MT6262)</li>
+<li>Samsung A41 (MT6768)</li>
+</ul>
+<h3 id="shannon"><a class="header" href="#shannon">Shannon</a></h3>
+<ul>
+<li>Most images for Galaxy S7, S7e (S335)</li>
+<li>Moto One Vision (S337)</li>
+<li>Galaxy S8, S8+ (S355)</li>
+<li>Galaxy S9 (S360)</li>
+<li>Galaxy S10, S10e (S5000)</li>
+</ul>
+<h2 id="using-ghidra"><a class="header" href="#using-ghidra">Using Ghidra</a></h2>
+<p>We have custom patches to Ghidra which are required if you are analyzing <strong>MediaTek firmware</strong>. See
+<a href="https://github.com/FirmWire/ghidra">https://github.com/FirmWire/ghidra</a> for setup instructions.
+For <strong>Shannon firmware</strong> see <a href="https://github.com/grant-h/ShannonBaseband#getting-started-with-shannon-firmware">https://github.com/grant-h/ShannonBaseband#getting-started-with-shannon-firmware</a>.
+You will need the ShannonLoader, which can be installed on to the custom Ghidra for MediaTek (or just use the upstream Ghidra).</p>
+<h2 id="known-issues"><a class="header" href="#known-issues">Known Issues</a></h2>
+<ul>
+<li>MediaTek snapshotting is hacky. CCCI FSD has file system state that needs to be specially saved</li>
+<li>After snapshotting, segfaults in Panda may occur. Just restore from snapshot to resume</li>
+<li>Ctrl+C during console mode doesn't work. Use Ctrl+\</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="technical-background"><a class="header" href="#technical-background">Technical Background</a></h1>
 <p>FirmWire is a baseband analysis platform. As input, it takes a baseband firmware image and tries to create an emulation environment for this image on-the-fly. </p>
 <h1 id="emulation-core"><a class="header" href="#emulation-core">Emulation Core</a></h1>
@@ -216,8 +244,8 @@ In more detail, our loader is responsible for parsing a binary firmware file and
 <tr><td><code>--restore-snapshot SNAPSHOT_NAME</code></td><td><a href="workspaces.html">Workspaces</a></td><td>Name of snapshot to be restored</td></tr>
 <tr><td><code>-t/--module INJECTED_TASK</code></td><td><a href="modkit.html">Modkit</a></td><td>Module / Task to be injected to the baseband modem</td></tr>
 <tr><td><code>-S/--stop</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Stop CPU after initializing the Machine. Useful for interactive exploration.</td></tr>
-<tr><td><code>--interactive</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Inject GLINK into the baseband for interactive exploration</td></tr>
-<tr><td><code>--ipython-kernel</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Spawn an ipython remote kernel that can be connected to from another terminal using <code>jupyter console --existing</code></td></tr>
+<tr><td><code>-s/--gdb-server</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Start GDB server on TCP port. Default is 1234. NOTE: this is a minimal GDB stub.</td></tr>
+<tr><td><code>--console</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Spawn an ipython remote kernel that can be connected to from another terminal using <code>jupyter console --existing</code></td></tr>
 <tr><td><code>--fuzz FUZZ</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Inject and invoke the passed AFL fuzz task module (headless).</td></tr>
 <tr><td><code>--fuzz-input FUZZ_INPUT</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Path the AFL test case (@@ should be sufficient) or just the path to a single test file.</td></tr>
 <tr><td><code>--fuzz-triage FUZZ_TRIAGE</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Invoke the fuzzer, but without an AFL front end. Enables debug hooks and saves code coverage.</td></tr>
@@ -227,15 +255,16 @@ In more detail, our loader is responsible for parsing a binary firmware file and
 <tr><td><code>--fuzz-state-addr-file FUZZ_STATE_ADDR_FILE</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Textfile containing the hex-addresses of state-variables</td></tr>
 <tr><td><code>--full-coverage</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Enable <em>full</em> coverage collection (logs every executed basic block)</td></tr>
 <tr><td><code>--shannon-loader-nv_data NV_DATA</code></td><td>TBD</td><td>(Shannon only) Specify the NV_DATA to be used</td></tr>
+<tr><td><code>--mtk-loader-nv_data NV_DATA</code></td><td>TBD</td><td>(MediaTek only) Specify the NV_DATA to be used</td></tr>
 </tbody></table>
-<h2 id="firmwire_devpy-arguments"><a class="header" href="#firmwire_devpy-arguments">firmwire_dev.py arguments</a></h2>
+<h2 id="developer-options"><a class="header" href="#developer-options">Developer options</a></h2>
 <p>Note: These arguments are mostly useful for development and debugging. As of now, they are part of <code>firmwire.py</code>, but will be moved to a custom <code>firmwire_dev.py</code> interface to clearly distinguish developer and user features in a future iteration of FirmWire.</p>
 <table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>--debug</code></td><td>TBD</td><td>Enable FirmWire debugging</td></tr>
 <tr><td><code>--debug-peripheral</code></td><td>TBD</td><td>Enable debugging for specified peripheralas</td></tr>
 <tr><td><code>--avatar-debug</code></td><td>TBD</td><td>Enable debug logging for Avatar2</td></tr>
 <tr><td><code>--avatar-debug-memory</code></td><td>TBD</td><td>Enable Avatar2 remote memory debugging (useful when Peripherals crash)</td></tr>
-<tr><td><code>--unassigned_access_log</code></td><td>TBD</td><td>Print log messages when memory accesses to undefined memory occur</td></tr>
+<tr><td><code>--unassigned-access-log</code></td><td>TBD</td><td>Print log messages when memory accesses to undefined memory occur</td></tr>
 <tr><td><code>--raw-asm-logging</code></td><td>TBD</td><td>Print assembly basic blocks as QEMU executes them. Useful for determining infinite loops.</td></tr>
 <tr><td><code>--trace-bb-translation</code></td><td>TBD</td><td>Print the address of each new Basic Block, useful to eval BBs reached during fuzzing.</td></tr>
 </tbody></table>
@@ -334,27 +363,21 @@ For an Ubuntu 20.04 system, we had success with the following toolchains provide
 In particular, you need to modify the <code>MODS</code> line and provide the path to your mod's source.
 To exemplify this, let's assume you want to add <code>mymod</code> to the mods available for emulated Shannon modems.</p>
 <p>Before modification, the relevant section in the Makefile should look something like this:</p>
-<pre><code>MODS := gsm_mm gsm_gmm gsm_sm gsm_cc lte_rrc lte_tcpip glink
+<pre><code>MODS := gsm_mm gsm_sm gsm_cc lte_rrc glink
 
-gsm_ss_SRC := fuzzers/gsm_ss.c afl.c
 gsm_mm_SRC := fuzzers/gsm_mm.c afl.c
 gsm_cc_SRC := fuzzers/gsm_cc.c afl.c
-gsm_gmm_SRC := fuzzers/gsm_gmm.c afl.c
 gsm_sm_SRC := fuzzers/gsm_sm.c afl.c
 lte_rrc_SRC := fuzzers/lte_rrc.c afl.c
-lte_tcpip_SRC := fuzzers/lte_tcpip.c afl.c
 glink_SRC := glink.c
 </code></pre>
 <p>Assuming you have your source code in <code>mymod.c</code>, this part of the Makefile should look as follows after modification:</p>
-<pre><code>MODS := gsm_mm gsm_gmm gsm_sm gsm_cc lte_rrc lte_tcpip glink mymod
+<pre><code>MODS := gsm_mm gsm_sm gsm_cc lte_rrc glink mymod
 
-gsm_ss_SRC := fuzzers/gsm_ss.c afl.c
 gsm_mm_SRC := fuzzers/gsm_mm.c afl.c
 gsm_cc_SRC := fuzzers/gsm_cc.c afl.c
-gsm_gmm_SRC := fuzzers/gsm_gmm.c afl.c
 gsm_sm_SRC := fuzzers/gsm_sm.c afl.c
 lte_rrc_SRC := fuzzers/lte_rrc.c afl.c
-lte_tcpip_SRC := fuzzers/lte_tcpip.c afl.c
 glink_SRC := glink.c
 mymod_SRC := mymod.c
 </code></pre>

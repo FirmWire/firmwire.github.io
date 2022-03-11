@@ -149,8 +149,8 @@
 <tr><td><code>--restore-snapshot SNAPSHOT_NAME</code></td><td><a href="workspaces.html">Workspaces</a></td><td>Name of snapshot to be restored</td></tr>
 <tr><td><code>-t/--module INJECTED_TASK</code></td><td><a href="modkit.html">Modkit</a></td><td>Module / Task to be injected to the baseband modem</td></tr>
 <tr><td><code>-S/--stop</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Stop CPU after initializing the Machine. Useful for interactive exploration.</td></tr>
-<tr><td><code>--interactive</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Inject GLINK into the baseband for interactive exploration</td></tr>
-<tr><td><code>--ipython-kernel</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Spawn an ipython remote kernel that can be connected to from another terminal using <code>jupyter console --existing</code></td></tr>
+<tr><td><code>-s/--gdb-server</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Start GDB server on TCP port. Default is 1234. NOTE: this is a minimal GDB stub.</td></tr>
+<tr><td><code>--console</code></td><td><a href="interactive.html">Interactive exploration</a></td><td>Spawn an ipython remote kernel that can be connected to from another terminal using <code>jupyter console --existing</code></td></tr>
 <tr><td><code>--fuzz FUZZ</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Inject and invoke the passed AFL fuzz task module (headless).</td></tr>
 <tr><td><code>--fuzz-input FUZZ_INPUT</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Path the AFL test case (@@ should be sufficient) or just the path to a single test file.</td></tr>
 <tr><td><code>--fuzz-triage FUZZ_TRIAGE</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Invoke the fuzzer, but without an AFL front end. Enables debug hooks and saves code coverage.</td></tr>
@@ -160,15 +160,16 @@
 <tr><td><code>--fuzz-state-addr-file FUZZ_STATE_ADDR_FILE</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Textfile containing the hex-addresses of state-variables</td></tr>
 <tr><td><code>--full-coverage</code></td><td><a href="fuzzing.html">Fuzzing</a></td><td>Enable <em>full</em> coverage collection (logs every executed basic block)</td></tr>
 <tr><td><code>--shannon-loader-nv_data NV_DATA</code></td><td>TBD</td><td>(Shannon only) Specify the NV_DATA to be used</td></tr>
+<tr><td><code>--mtk-loader-nv_data NV_DATA</code></td><td>TBD</td><td>(MediaTek only) Specify the NV_DATA to be used</td></tr>
 </tbody></table>
-<h2 id="firmwire_devpy-arguments"><a class="header" href="#firmwire_devpy-arguments">firmwire_dev.py arguments</a></h2>
+<h2 id="developer-options"><a class="header" href="#developer-options">Developer options</a></h2>
 <p>Note: These arguments are mostly useful for development and debugging. As of now, they are part of <code>firmwire.py</code>, but will be moved to a custom <code>firmwire_dev.py</code> interface to clearly distinguish developer and user features in a future iteration of FirmWire.</p>
 <table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>--debug</code></td><td>TBD</td><td>Enable FirmWire debugging</td></tr>
 <tr><td><code>--debug-peripheral</code></td><td>TBD</td><td>Enable debugging for specified peripheralas</td></tr>
 <tr><td><code>--avatar-debug</code></td><td>TBD</td><td>Enable debug logging for Avatar2</td></tr>
 <tr><td><code>--avatar-debug-memory</code></td><td>TBD</td><td>Enable Avatar2 remote memory debugging (useful when Peripherals crash)</td></tr>
-<tr><td><code>--unassigned_access_log</code></td><td>TBD</td><td>Print log messages when memory accesses to undefined memory occur</td></tr>
+<tr><td><code>--unassigned-access-log</code></td><td>TBD</td><td>Print log messages when memory accesses to undefined memory occur</td></tr>
 <tr><td><code>--raw-asm-logging</code></td><td>TBD</td><td>Print assembly basic blocks as QEMU executes them. Useful for determining infinite loops.</td></tr>
 <tr><td><code>--trace-bb-translation</code></td><td>TBD</td><td>Print the address of each new Basic Block, useful to eval BBs reached during fuzzing.</td></tr>
 </tbody></table>
