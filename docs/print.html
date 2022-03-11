@@ -510,8 +510,146 @@ In [4]: gl
 Out[4]: &lt;firmwire.hw.glink.GLinkPeripheral at 0x7f7219792850&gt;`
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fuzzing"><a class="header" href="#fuzzing">Fuzzing</a></h1>
-<h2 id="building-a-fuzzing-harness"><a class="header" href="#building-a-fuzzing-harness">Building a fuzzing Harness</a></h2>
-<h2 id="setup"><a class="header" href="#setup">Setup</a></h2>
+<p>One of FirmWire's core contribution is the capability to fuzz the emulated baseband image using specialized fuzzing tasks.
+These tasks are created using our <a href="modkit.html">modkit</a>, and use <a href="https://github.com/nccgroup/TriforceAFL">triforce-afl</a> hypercalls to communicate with the fuzzer, <a href="https://github.com/AFLplusplus/AFLplusplus">AFL++</a>.</p>
+<p>This combination of injected tasks and hypercalls allows for transparent in-modem fuzzing: A fuzz task would get the input from the fuzzer and then send it as <em>message</em> to the targeted task. For the targeted task, the input received this way would look like benign input arriving over the usual channels. </p>
+<p>FirmWire comes with some example fuzzing tasks, which were used in the evaluation of our <a href="../../firmwire-ndss22.pdf">paper</a>.
+Let's look at one example task, to demonstrate how one would build a harness.</p>
+<h2 id="example-harness-gsm-cc"><a class="header" href="#example-harness-gsm-cc">Example Harness: GSM CC</a></h2>
+<p>Below is the high-level overview of our <a href="https://github.com/FirmWire/FirmWire/blob/main/modkit/shannon/fuzzers/gsm_cc.c">gsm_cc</a> harness for Shannon basebands:</p>
+<pre><code class="language-C">#include &lt;shannon.h&gt;
+#include &lt;afl.h&gt;
+
+const char TASK_NAME[] = &quot;AFL_GSM_CC\0&quot;;
+
+static uint32_t qid;
+
+int fuzz_single_setup()
+{
+    ...
+}
+void fuzz_single()
+{
+    ...
+}
+</code></pre>
+<p>First, <code>shannon.h</code> is included to provide shannon specific convenience functions (e.g. <code>uart_puts</code> and <code>pal_MemAlloc</code>).
+Then, <code>afl.h</code> is included, which provides the main functionality and API for fuzzing. The API is a slightly modified version as the one given by TriforceAFL and provides following four functions:</p>
+<table><thead><tr><th>Function</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>char * getWork(unsigned int *sizep)</code></td><td>Returns a buffer with fuzzing input and stores the input size into <code>sizep</code>.</td></tr>
+<tr><td><code>int startWork(unsigned int start, unsigned int end)</code></td><td>Start a fuzzing execution, while collecting coverage for code residing between <code>start</code> and <code>end</code>.</td></tr>
+<tr><td><code>int doneWork(int val)</code></td><td>Mark the end of a fuzzing iteration, providing <code>val</code> as return code to the fuzzer.</td></tr>
+<tr><td><code>int startForkserver(int ticks, unsigned int persistent_cnt)</code></td><td>Starts AFL forkserver. <code>ticks</code> controls whether qemu ticks should be enabled or not. <code>persistent_count</code> is deprecated and now controlled via an environment variable.</td></tr>
+</tbody></table>
+<p>Besides this API, the <code>afl.h</code> file also provides the basic skeleton for the fuzzing loop inside a <code>task_main</code> function:</p>
+<pre><code class="language-C">void task_main() {
+    [...]
+    if (!fuzz_single_setup()) {
+      uart_puts(&quot;[!] Fuzzer init error\n&quot;);
+      for (;;) ;
+    }
+    uart_puts(&quot;[+] Fuzzer init complete\n&quot;);
+
+    uart_puts(&quot;[+] Starting fork server\n&quot;);
+    startForkserver(1, AFL_PERSISTENT_LOOP_CTX);
+
+    while (1) {
+      fuzz_single();
+    }
+</code></pre>
+<p>As we can see, this logic requires two additional functions: <code>fuzz_single_setup</code> and <code>fuzz_single</code>, which both need to be provided by our harness.
+The first function is responsible for all task-specific setup. In the case of <code>gsm_cc</code>, this means (1) resolving the queueID for CC, (2) creating a <code>qitem_cc</code> memory chunk containing the correct msgGroup ID to initiate task initialization, and (3) sending the memory chunk as message to the according queue.</p>
+<p>The full code for these three steps looks as below:</p>
+<pre><code class="language-C">int fuzz_single_setup()
+{
+    qid = queuename2id(&quot;CC&quot;);
+
+    struct qitem_cc * init = pal_MemAlloc(4, sizeof(struct qitem_cc), __FILE__, __LINE__);
+
+    init-&gt;header.op = 0;
+    init-&gt;header.size = 1;
+    // 0x2a01 CC_INIT_REQ
+    init-&gt;header.msgGroup = 0x2a01;
+    pal_MsgSendTo(qid, init, 2);
+
+    return 1;
+}
+</code></pre>
+<p>When it comes to <code>fuzz_single</code>, this function is executed once per fuzzing iteration and is meant to forward the input from the fuzzer to the dedicated target task.</p>
+<p>In case of <code>gsm_cc</code>, this includes the following steps:</p>
+<ol>
+<li>Create a memory chunk for the <code>qitem_cc</code> (just as above).</li>
+<li>Get fuzzing input from the fuzzer using <code>getWork()</code>.</li>
+<li>Validate that the input size is within valid boundaries.</li>
+<li>Set up the <code>qitem_cc</code> to have the correct MessageGroup for RADIO_MSG types, as the contents for these are attacker controlled.</li>
+<li>Moving the received input into <code>qitem_cc</code>.</li>
+<li>Trigger the collection of coverage by calling <code>startWork</code>.</li>
+<li>Sending the set up message to the target tasks. This will invoke the scheduler and the fuzztask is only scheduled back in after the message was processed.</li>
+<li>Call <code>doneWork</code> to signalize the fuzzer that the input was processed, and the next iteration can start.</li>
+</ol>
+<p>In code, this looks as follows:</p>
+<pre><code class="language-C">void fuzz_single()
+{
+    uint32_t input_size;
+    uint16_t size;
+
+    uart_puts(&quot;[+] Allocating Qitem\n&quot;);
+    struct qitem_cc * item = pal_MemAlloc(4, sizeof(struct qitem_cc) + AFL_MAX_INPUT, __FILE__, __LINE__);
+
+    if (!item) {
+      uart_puts(&quot;ALLOC FAILED&quot;);
+      return;
+    }
+
+    uart_puts(&quot;[+] Getting Work\n&quot;);
+    char * buf = getWork(&amp;input_size);
+    size = (uint16_t) input_size;
+    // GSM radio messages are usually limited in size
+    size = size &gt; 512 ? 512 : size;
+
+    uart_puts(&quot;[+] Received n bytes: &quot;);
+    uart_dump_hex((uint8_t *) &amp;size, 4); // Print some for testing
+
+    if (size &lt; 3) {
+      startWork(0, 0xffffffff); // memory range to collect coverage
+      doneWork(0);
+      return;
+    }
+
+    uart_puts(&quot;[+] Filling the qitem\n&quot;);
+    item-&gt;header.op1 = 0xaa;
+    item-&gt;header.op2 = 0x20;
+
+    // Only target the RADIO_MSG msg types that get sent to the MM task
+    item-&gt;header.msgGroup = 0x2a3c;
+
+    item-&gt;header.size = size;
+
+    memcpy(item-&gt;payload, buf, size);
+
+    uart_puts(&quot;[+] FIRE\n&quot;);
+    startWork(0, 0xffffffff); // memory range to collect coverage
+
+    pal_MsgSendTo(qid, item, 2);
+    doneWork(0);
+}
+</code></pre>
+<p>Further examples on how to write fuzzing harnesses can be found by inspecting the source code of our other harnesses.
+Our <a href="https://github.com/FirmWire/FirmWire/blob/main/modkit/shannon/fuzzers/lte_rrc.c">lte_rrc</a> fuzzer demonstrates for instance how a fuzzer would look like when the targeted task requires (a) an event to trigger message processing and (b) the input delivered in a separated memory chunk (rather than inlined in the qitem).</p>
+<h2 id="controlling-the-fuzzing-process"><a class="header" href="#controlling-the-fuzzing-process">Controlling the fuzzing process</a></h2>
+<p>Writing the fuzzing harness is only the first step; the second is to actually start the fuzzer.
+FirmWire requires, at its minimum, two additional commandline flags to facilitate fuzzing: <code>--fuzz</code> and <code>--fuzz-input</code>.
+The first one will cause FirmWire to be started in fuzzing mode. This disables console output, debugging hooks, and similar to achieve maximum performance during fuzzing.
+The latter flag advises FirmWire where it can find the current fuzzing input, and this is usually provided by AFL itself.
+A full commandline for starting fuzzing, on the example of <code>gsm_cc</code> would look like this:</p>
+<pre><code>$ afl-fuzz -i in -o out -U -- ./firmwire.py --restore-snapshot fuzz_base --fuzz gsm_cc --fuzz-input @@ modem.bin
+</code></pre>
+<p>Assuming you have some seed inputs in the <code>in</code> directory, this commandline should bring you directly to the AFL++ window.
+Note how we used a snapshot here? As the boot time of the modem is quite long, AFL++ would timeout without these snapshot.
+If you would like to fuzz without using the snapshot, we recommend to set the <code>AFL_FORKSRV_INIT_TMOUT</code> environment variable to a high value.</p>
+<h2 id="persistent-mode"><a class="header" href="#persistent-mode">Persistent Mode</a></h2>
+<h2 id="replaying-inputs"><a class="header" href="#replaying-inputs">Replaying Inputs</a></h2>
+<p>Happy Fuzzing</p>
 
                     </main>
 
