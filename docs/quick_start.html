@@ -138,6 +138,16 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h1>
+<p>Have you installed FirmWire and are all eager to emulate your modem FirmWire? Very good!
+All you have to run after <a href="installation.html">installation</a> is:</p>
+<pre><code>$ ./firmwire.py modem.bin
+</code></pre>
+<p>This will automatically attempt to create an emulation environment for the selected modem file and kick off emulation!
+Currently, FirmWire supports a subset of MediaTek MTK and Samsung Shannon firmware images.</p>
+<p>Please note that FirmWire requires a couple different tcp ports for its operation. If you have any restrictions on which ports can be used, please use the <code>--consecutive-ports</code> flag to specify which ports can be used.
+For instance, if ports 10000-10005 are free to use on your system, invoke firmwire as follows:</p>
+<pre><code>$ ./firmwire.py --consecutive-ports 100000 modem.bin
+</code></pre>
 
                     </main>
 

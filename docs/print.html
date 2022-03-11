@@ -153,6 +153,16 @@ FirmWire is a full-system baseband firmware emulation platform that supports Sam
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h1>
+<p>Have you installed FirmWire and are all eager to emulate your modem FirmWire? Very good!
+All you have to run after <a href="installation.html">installation</a> is:</p>
+<pre><code>$ ./firmwire.py modem.bin
+</code></pre>
+<p>This will automatically attempt to create an emulation environment for the selected modem file and kick off emulation!
+Currently, FirmWire supports a subset of MediaTek MTK and Samsung Shannon firmware images.</p>
+<p>Please note that FirmWire requires a couple different tcp ports for its operation. If you have any restrictions on which ports can be used, please use the <code>--consecutive-ports</code> flag to specify which ports can be used.
+For instance, if ports 10000-10005 are free to use on your system, invoke firmwire as follows:</p>
+<pre><code>$ ./firmwire.py --consecutive-ports 100000 modem.bin
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="technical-background"><a class="header" href="#technical-background">Technical Background</a></h1>
 <p>FirmWire is a baseband analysis platform. As input, it takes a baseband firmware image and tries to create an emulation environment for this image on-the-fly. </p>
 <h1 id="emulation-core"><a class="header" href="#emulation-core">Emulation Core</a></h1>
@@ -169,7 +179,7 @@ In more detail, our loader is responsible for parsing a binary firmware file and
 <h1 id="this-manual"><a class="header" href="#this-manual">This Manual</a></h1>
 <p>The rest of this manual will guide you through FirmWire from a user's perspective. In case you interested in developing or extending the core functionality of FirmWire, please stay tuned. Alternatively, you can dig through the source code, or reach out to us - we are happy to provide additional information wherever needed!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="command-line-interface-reference"><a class="header" href="#command-line-interface-reference">Command Line Interface Reference</a></h1>
-<p>This part of our documentation works as quick-reference to all the <code>firmwire.py</code> and <code>firmwire_dev.py</code> CLI arguments, and provides links about where they are covered.</p>
+<p>This part of our documentation works as quick-reference to all the <code>firmwire.py</code> and <code>firmwire_dev.py</code> CLI arguments, and provides links about where they are covered. For more information about the single command line flags, you can also run FirmWire with the <code>--help</code> flag.</p>
 <h2 id="firmwirepy-arguments"><a class="header" href="#firmwirepy-arguments">firmwire.py arguments</a></h2>
 <table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>modem_file</code></td><td><a href="getting_started.html">Getting Started</a></td><td>The modem file FirmWire shall create an emulation environment for. Only mandatory argument(!)</td></tr>
