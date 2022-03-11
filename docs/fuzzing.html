@@ -167,9 +167,9 @@ Then, <code>afl.h</code> is included, which provides the main functionality and 
 <tr><td><code>char * getWork(unsigned int *sizep)</code></td><td>Returns a buffer with fuzzing input and stores the input size into <code>sizep</code>.</td></tr>
 <tr><td><code>int startWork(unsigned int start, unsigned int end)</code></td><td>Start a fuzzing execution, while collecting coverage for code residing between <code>start</code> and <code>end</code>.</td></tr>
 <tr><td><code>int doneWork(int val)</code></td><td>Mark the end of a fuzzing iteration, providing <code>val</code> as return code to the fuzzer.</td></tr>
-<tr><td><code>int startForkserver(int ticks, unsigned int persistent_cnt)</code></td><td>Starts AFL forkserver. <code>ticks</code> controls whether qemu ticks should be enabled or not. <code>persistent_count</code> is deprecated and now controlled via an environment variable.</td></tr>
+<tr><td><code>int startForkserver(int ticks)</code></td><td>Starts AFL forkserver. <code>ticks</code> controls whether qemu ticks should be enabled or not.</td></tr>
 </tbody></table>
-<p>Besides this API, the <code>afl.h</code> file also provides the basic skeleton for the fuzzing loop inside a <code>task_main</code> function:</p>
+<p>Besides this API, the <code>afl.h</code>/<code>afl.c</code> files also provides the basic skeleton for the fuzzing loop inside a <code>task_main</code> function:</p>
 <pre><code class="language-C">void task_main() {
     [...]
     if (!fuzz_single_setup()) {
@@ -266,18 +266,36 @@ The first function is responsible for all task-specific setup. In the case of <c
 Our <a href="https://github.com/FirmWire/FirmWire/blob/main/modkit/shannon/fuzzers/lte_rrc.c">lte_rrc</a> fuzzer demonstrates for instance how a fuzzer would look like when the targeted task requires (a) an event to trigger message processing and (b) the input delivered in a separated memory chunk (rather than inlined in the qitem).</p>
 <h2 id="controlling-the-fuzzing-process"><a class="header" href="#controlling-the-fuzzing-process">Controlling the fuzzing process</a></h2>
 <p>Writing the fuzzing harness is only the first step; the second is to actually start the fuzzer.
-FirmWire requires, at its minimum, two additional commandline flags to facilitate fuzzing: <code>--fuzz</code> and <code>--fuzz-input</code>.
+FirmWire requires, at its minimum, two additional command line flags to facilitate fuzzing: <code>--fuzz</code> and <code>--fuzz-input</code>.
 The first one will cause FirmWire to be started in fuzzing mode. This disables console output, debugging hooks, and similar to achieve maximum performance during fuzzing.
 The latter flag advises FirmWire where it can find the current fuzzing input, and this is usually provided by AFL itself.
-A full commandline for starting fuzzing, on the example of <code>gsm_cc</code> would look like this:</p>
+A full command line for starting fuzzing, on the example of <code>gsm_cc</code> would look like this:</p>
 <pre><code>$ afl-fuzz -i in -o out -U -- ./firmwire.py --restore-snapshot fuzz_base --fuzz gsm_cc --fuzz-input @@ modem.bin
 </code></pre>
-<p>Assuming you have some seed inputs in the <code>in</code> directory, this commandline should bring you directly to the AFL++ window.
+<p>Assuming you have some seed inputs in the <code>in</code> directory, this command line should bring you directly to the AFL++ window.
 Note how we used a snapshot here? As the boot time of the modem is quite long, AFL++ would timeout without these snapshot.
 If you would like to fuzz without using the snapshot, we recommend to set the <code>AFL_FORKSRV_INIT_TMOUT</code> environment variable to a high value.</p>
 <h2 id="persistent-mode"><a class="header" href="#persistent-mode">Persistent Mode</a></h2>
+<p>Besides the <code>fuzz-mode</code>, FirmWire provides another option for further improving fuzzing throughput: persistent-mode fuzzing.
+Instead of re-forking after every single fuzzing input, the emulator can process multiple inputs in a loop, re-forking only every N iterations.
+From a programming perspective, this basically just means that <code>fuzz_single()</code> is invoked multiple times, and FirmWire keeps track of how many inputs were processed before issuing a new fork.</p>
+<p>To use persistent mode, the command line only needs to be extended with <code>--fuzz-persistent N</code>. This means, when wanting to fuzz for 1000 iterations before re-forking, the command line above needs to be modified as follows:</p>
+<pre><code>$ afl-fuzz -i in -o out -U -- ./firmwire.py --restore-snapshot fuzz_base --fuzz gsm_cc --fuzz-input @@ --fuzz-persistent 1000 modem.bin
+</code></pre>
+<p>To further improve persistent mode, we provide one additional feature: a persistent test case log.
+Usually, upon crash, only the last input is saved by AFL++, as it assumes that the target state between two fuzz iterations did not change.
+As baseband firmware is highly stateful, we cautiously violate this assumption during persistent fuzzing.</p>
+<p>To not loose precious input during fuzzing which brings the baseband into different states, we also provide a <code>--fuzz-crashlog-dir</code> command line flag.
+The argument to this flag should point to a directory. Upon crash, all inputs used in the according persistent iteration are stored into a file within this given directory.</p>
 <h2 id="replaying-inputs"><a class="header" href="#replaying-inputs">Replaying Inputs</a></h2>
-<p>Happy Fuzzing</p>
+<p>During fuzzing, you may encounter some crashes or timeouts. But how to analyze them?</p>
+<p>FirmWire brings a <code>--fuzz-triage</code> flag, which allows replaying of fuzzing inputs for a specific harness, while keeping logging output enabled.
+The following command line will replay a test case called <code>crash.bin</code>, located in the same directory:</p>
+<pre><code>$ ./firmwire.py --restore-snapshot fuzz_base --fuzz-triage gsm_cc --fuzz-input ./crash.bin modem.bin
+</code></pre>
+<p>Note that the fuzz-triage mode can also be coupled with different interactive capabilities (e.g., gdb) to facilitate root cause analysis.</p>
+<p>Lastly, it is also possible to replay persistent crashlogs collected with <code>--fuzz-crashlog-dir</code>. This can be done by selecting the desired crashlog via <code>--fuzz-crashlog-replay</code>. </p>
+<h3 id="happy-fuzzing"><a class="header" href="#happy-fuzzing">Happy Fuzzing!</a></h3>
 
                     </main>
 
