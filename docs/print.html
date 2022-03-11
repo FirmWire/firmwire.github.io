@@ -487,7 +487,9 @@ These buffers use a simple packet-based data format for communication:</p>
 <tr><td>GLINK_ALLOC_BLOCK</td><td><code>gl.create_block(size)</code></td><td>Allocate a chunk of memory of given <code>size</code>. The address of the chunk can later be retrieved via <code>gl.access</code>.</td></tr>
 <tr><td>GLINK_CALL_FUNC</td><td><code>gl.call_function(fn, args)</code></td><td>Call function <code>fn</code> with args specified in <code>args</code>. <code>fn</code> must be of type int, and <code>args</code> a list of <code>ints</code>. The return code of the function can later be retrieved from <code>gl.access</code>.</td></tr>
 </tbody></table>
-<p>When using any of these commands, keep in mind that GLink acts fully asynchronously, i.e., when calling a function from Python, the according command is only written to the shared MMIO region. The GLink task in the baseband then has to parse and process the command before the result is available.</p>
+<h3 id="guestlink-tips--tricks"><a class="header" href="#guestlink-tips--tricks">GuestLink Tips &amp; Tricks</a></h3>
+<h4 id="asynchronous-behavior"><a class="header" href="#asynchronous-behavior">Asynchronous behavior:</a></h4>
+<p>When using any of the commands, keep in mind that GLink acts fully asynchronously, i.e., when calling a function from Python, the according command is only written to the shared MMIO region. The GLink task in the baseband then has to parse and process the command before the result is available.</p>
 <p>For better understanding, we provide a typical guestlink usage example below, allocating a block of size 0x100, and storing the result into chunk_addr:</p>
 <pre><code class="language-Python">In [1]: self.qemu.stop()
 In [2]: gl = self.get_peripheral('glink')
@@ -496,6 +498,16 @@ In [4]: self.run_for(0.5)
 In [5]: chunk_addr = gl.access
 In [6]: hex(chunk_addr)
 Out[6]: '0x44f0293c'
+</code></pre>
+<h4 id="guestlink--snapshots"><a class="header" href="#guestlink--snapshots">GuestLink &amp; Snapshots:</a></h4>
+<p>When using GLink in combination with snapshots, it is important to note that a reference to the guest link peripheral does not propagate across snapshots. That means, after restoring a snapshot, a new reference to the GLink peripheral has to be required via <code>get_peripheral</code>, as shown below:</p>
+<pre><code class="language-Python">In [1]: gl = self.get_peripheral('glink')
+In [2]: gl
+Out[2]: &lt;firmwire.hw.glink.GLinkPeripheral at 0x7f720c4f59d0&gt;
+In [3]: self.restore_snapshot(&quot;glink_demo&quot;)
+In [3]: gl = self.get_peripheral('glink')
+In [4]: gl 
+Out[4]: &lt;firmwire.hw.glink.GLinkPeripheral at 0x7f7219792850&gt;`
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fuzzing"><a class="header" href="#fuzzing">Fuzzing</a></h1>
 <h2 id="building-a-fuzzing-harness"><a class="header" href="#building-a-fuzzing-harness">Building a fuzzing Harness</a></h2>
