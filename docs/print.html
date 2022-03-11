@@ -453,7 +453,50 @@ It provides functions such as <code>cont()</code>, <code>stop()</code>, <code>se
 </tbody></table>
 <p>For Shannon basebands, the interactive capabilities are further extended by the special GuestLink peripheral.</p>
 <h2 id="guestlink-shannon-only"><a class="header" href="#guestlink-shannon-only">GuestLink (Shannon only)</a></h2>
-<p>The GuestLink is a combination of custom task injected into the baseband and python peripheral, allowing for <em>interaction</em> with the emulated baseband.</p>
+<p>The GuestLink is a combination of custom task injected into the baseband and python peripheral, allowing for <em>interaction</em> with the emulated baseband. To make use of it, start FirmWire both with activated console and injected <code>glink</code> task:</p>
+<pre><code>./firmwire.py -t glink --console ./modem.bin
+</code></pre>
+<p>Now, after connecting to the console as described above, you can get a handle to the glink peripheral:</p>
+<pre><code>In [1]: gl = self.get_peripheral('glink')
+</code></pre>
+<p>This GLink peripheral can be controlled from Python and uses a MMIO range to communicated with the GLink task.
+More specifically, the MMIO range is organized as follows:</p>
+<pre><code class="language-C">struct glink_peripheral {
+  uint32_t access;
+  uint32_t tx_head;
+  uint32_t tx_tail;
+  uint32_t rx_head;
+  uint32_t rx_tail;
+  uint8_t tx_fifo[TX_FIFO_SIZE];
+  uint8_t rx_fifo[RX_FIFO_SIZE];
+} ;
+</code></pre>
+<p>The <code>access</code> field is used to communicate return values from the GLink task back to the Python peripheral, while the rest are data structures for input and output FIFO buffers.
+These buffers use a simple packet-based data format for communication:</p>
+<pre><code class="language-C">struct glink_cmd_header {
+  uint8_t cmd;
+  uint8_t len;
+  // next field is variable amount of octets
+};
+</code></pre>
+<p>Currently, GuestLinks implementation only allows for commands from Python to the emulated baseband. The available commands are:</p>
+<table><thead><tr><th>CMD</th><th>PythonAPI</th><th>Description</th></tr></thead><tbody>
+<tr><td>GLINK_SEND_QUEUE_INDIR</td><td><code>gl.send_queue(True, src_qid_name, dst_qid_name, msg_group, payload)</code></td><td>Sends specified message to baseband internal queue. Payload is provided as allocated memory chunk, to be free'd by the baseband.</td></tr>
+<tr><td>GLINK_SEND_QUEUE</td><td><code>gl.send_queue(False, src_qid_name, dst_qid_name, msg_group, payload)</code></td><td>Sends specified message to baseband internal queue. Payload is inlined with the msg_struct.</td></tr>
+<tr><td>GLINK_SET_EVENT</td><td><code>gl.set_event(event)</code></td><td>Sets the baseband internal event. <code>event</code> can either be int (event number) or bytes (event name).</td></tr>
+<tr><td>GLINK_ALLOC_BLOCK</td><td><code>gl.create_block(size)</code></td><td>Allocate a chunk of memory of given <code>size</code>. The address of the chunk can later be retrieved via <code>gl.access</code>.</td></tr>
+<tr><td>GLINK_CALL_FUNC</td><td><code>gl.call_function(fn, args)</code></td><td>Call function <code>fn</code> with args specified in <code>args</code>. <code>fn</code> must be of type int, and <code>args</code> a list of <code>ints</code>. The return code of the function can later be retrieved from <code>gl.access</code>.</td></tr>
+</tbody></table>
+<p>When using any of these commands, keep in mind that GLink acts fully asynchronously, i.e., when calling a function from Python, the according command is only written to the shared MMIO region. The GLink task in the baseband then has to parse and process the command before the result is available.</p>
+<p>For better understanding, we provide a typical guestlink usage example below, allocating a block of size 0x100, and storing the result into chunk_addr:</p>
+<pre><code class="language-Python">In [1]: self.qemu.stop()
+In [2]: gl = self.get_peripheral('glink')
+In [3]: gl.create_block(0x100)
+In [4]: self.run_for(0.5)
+In [5]: chunk_addr = gl.access
+In [6]: hex(chunk_addr)
+Out[6]: '0x44f0293c'
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fuzzing"><a class="header" href="#fuzzing">Fuzzing</a></h1>
 <h2 id="building-a-fuzzing-harness"><a class="header" href="#building-a-fuzzing-harness">Building a fuzzing Harness</a></h2>
 <h2 id="setup"><a class="header" href="#setup">Setup</a></h2>
