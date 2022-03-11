@@ -152,6 +152,32 @@ FirmWire is a full-system baseband firmware emulation platform that supports Sam
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<p>The recommended way of using FirmWire is by using the supplied <a href="https://github.com/FirmWire/FirmWire/blob/main/Dockerfile">Dockerfile</a>. To build the docker file, execute the following commands:</p>
+<pre><code>git clone git@github.com:FirmWire/FirmWire.git
+cd FirmWire
+git clone git@github.com:FirmWire/panda.git
+
+# This will take some time
+docker build -t firmwire .
+</code></pre>
+<p>Afterwards, you can obtain an interactive shell to a docker environment with FirmWire installed by executing:</p>
+<pre><code>docker run --rm -it -v $(pwd):/firmwire firmwire
+</code></pre>
+<p>From here, you can directly go to check out our <a href="quick_start.html">quick start</a> documentation to emulate your first modem!</p>
+<h2 id="visual-studio-code"><a class="header" href="#visual-studio-code">Visual Studio Code</a></h2>
+<p>Alternatively to using docker from your commandline, you can also create a FirmWire environment using VScode, by using the <code>devcontainer</code> and <code>docker</code> extensions.
+After cloning FirmWire and FirmWire's version of Panda, just open the corresponding directory in code and execute:
+<code>&gt; Remote-Containers: Add Development Container Configuration Files</code>
+Then, select <code>From Dockerfile</code>, which should automatically create a <code>.devcontainer</code> file. Afterwards, follow code's prompt to <code>Reopen in container</code>.</p>
+<p>This will build the docker container and provide you an interactive shell inside the docker environment, with files transparently forwarded to the host directories. This is the favorite development setup for some of the FirmWire developers!</p>
+<h2 id="manual-installation"><a class="header" href="#manual-installation">Manual Installation</a></h2>
+<p>The manual installation of FirmWire is a bit more tedious. Besides installing FirmWire and its requirement, you also need to:</p>
+<ol>
+<li>Manually build Panda</li>
+<li>Install PyPanda</li>
+<li>Manually build the FirmWire <a href="modkit.html">mods</a> </li>
+</ol>
+<p>For information on how to carry out these individual steps, please refer to the <a href="https://github.com/FirmWire/FirmWire/blob/main/Dockerfile">Dockerfile</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h1>
 <p>Have you installed FirmWire and are all eager to emulate your modem FirmWire? Very good!
 All you have to run after <a href="installation.html">installation</a> is:</p>
