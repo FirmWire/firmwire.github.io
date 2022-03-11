@@ -76,7 +76,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">FirmWire</a></li><li class="chapter-item expanded "><a href="overview.html"><strong aria-hidden="true">1.</strong> Overview</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">2.</strong> Installation</a></li><li class="chapter-item expanded "><a href="quick_start.html"><strong aria-hidden="true">3.</strong> Quick Start</a></li><li class="chapter-item expanded "><a href="cli_reference.html"><strong aria-hidden="true">4.</strong> CLI Reference</a></li><li class="chapter-item expanded "><a href="workspaces.html"><strong aria-hidden="true">5.</strong> Workspaces</a></li><li class="chapter-item expanded "><a href="pattern_db.html"><strong aria-hidden="true">6.</strong> PatternDB</a></li><li class="chapter-item expanded "><a href="modkit.html"><strong aria-hidden="true">7.</strong> Baseband ModKit</a></li><li class="chapter-item expanded "><a href="interactive.html"><strong aria-hidden="true">8.</strong> Interactive exploration</a></li><li class="chapter-item expanded "><a href="fuzzing.html"><strong aria-hidden="true">9.</strong> Fuzzing</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="index.html">FirmWire</a></li><li class="chapter-item expanded "><a href="installation.html"><strong aria-hidden="true">1.</strong> Installation</a></li><li class="chapter-item expanded "><a href="quick_start.html"><strong aria-hidden="true">2.</strong> Quick Start</a></li><li class="chapter-item expanded "><a href="background.html"><strong aria-hidden="true">3.</strong> Background</a></li><li class="chapter-item expanded "><a href="cli_reference.html"><strong aria-hidden="true">4.</strong> CLI Reference</a></li><li class="chapter-item expanded "><a href="workspaces.html"><strong aria-hidden="true">5.</strong> Workspaces</a></li><li class="chapter-item expanded "><a href="pattern_db.html"><strong aria-hidden="true">6.</strong> PatternDB</a></li><li class="chapter-item expanded "><a href="modkit.html"><strong aria-hidden="true">7.</strong> Baseband ModKit</a></li><li class="chapter-item expanded "><a href="interactive.html"><strong aria-hidden="true">8.</strong> Interactive exploration</a></li><li class="chapter-item expanded "><a href="fuzzing.html"><strong aria-hidden="true">9.</strong> Fuzzing</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -151,12 +151,14 @@ FirmWire is a full-system baseband firmware emulation platform that supports Sam
   year = {2022}
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="overview"><a class="header" href="#overview">Overview</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="technical-background"><a class="header" href="#technical-background">Technical Background</a></h1>
 <p>FirmWire is a baseband analysis platform. As input, it takes a baseband firmware image and tries to create an emulation environment for this image on-the-fly. </p>
 <h1 id="emulation-core"><a class="header" href="#emulation-core">Emulation Core</a></h1>
 <p>The Emulation Core of FirmWire is built on top of <a href="https://github.com/avatartwo/avatar2">avatar2</a> and <a href="https://github.com/panda-re/panda/">PANDA</a>.
 The core emulation capabilities are provided by PANDA, while avatar2 is used as middleware to orchestrate the execution state of the emulator, including spin-up, breakpoint registration, and starting/stopping of the emulation.
-Additionally, we use avatar2's Python Peripherals to implement <a href="TODO">Peripherals</a> which react on Memory-Mapped I/O accesses.</p>
+Additionally, we use avatar2's Python Peripherals to implement peripherals which react on Memory-Mapped I/O accesses.</p>
 <p>Under the hood, FirmWire implements vendor specific <em>machines</em> which use avatar2's PyPanda target to embed PANDA as dynamic library in the same process space as the Python Interpreter keeping the required inter-process communication for FirmWire to a bare minimum.</p>
 <h1 id="emulator-configuration"><a class="header" href="#emulator-configuration">Emulator configuration</a></h1>
 <p>PANDA and avatar2 use the so-called <code>configurable machine</code> to enable emulation of arbitrary embedded systems with custom memory mappings.
@@ -164,14 +166,13 @@ In essence, the embedded systems' memory map (including ROM, RAM, and peripheral
 This JSON file is then passed on to PANDA, which uses it to register and emulate the memory ranges accordingly.</p>
 <p>Inside FirmWire, we use the configurable machine to create the emulation environments for the target baseband images on-the-fly.
 In more detail, our loader is responsible for parsing a binary firmware file and automatically extracting the required memory mappings, for instance by finding pre-defined MPU tables within the binary image.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="installation"><a class="header" href="#installation">Installation</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h1>
+<h1 id="this-manual"><a class="header" href="#this-manual">This Manual</a></h1>
+<p>The rest of this manual will guide you through FirmWire from a user's perspective. In case you interested in developing or extending the core functionality of FirmWire, please stay tuned. Alternatively, you can dig through the source code, or reach out to us - we are happy to provide additional information wherever needed!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="command-line-interface-reference"><a class="header" href="#command-line-interface-reference">Command Line Interface Reference</a></h1>
 <p>This part of our documentation works as quick-reference to all the <code>firmwire.py</code> and <code>firmwire_dev.py</code> CLI arguments, and provides links about where they are covered.</p>
 <h2 id="firmwirepy-arguments"><a class="header" href="#firmwirepy-arguments">firmwire.py arguments</a></h2>
 <table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>modem_file</code></td><td><a href="getting_started.html">Getting Started</a></td><td>The modem file FirmWire shall create an emulation environment for. Only mandatory argument(!)</td></tr>
-<tr><td><code>--random-ports</code></td><td><a href="getting_started.html">Getting Started</a></td><td>Choose random ports for any listening sockets (e.g. QEMU's GDB &amp; QMP).</td></tr>
 <tr><td><code>--consecutive-ports CONSECUTIVE_PORTS</code></td><td><a href="getting_started.html">Getting Started</a></td><td>Choose consecutive ports for the any listening sockets (e.g. QEMU's GDB &amp; QMP), starting with the port provided.</td></tr>
 <tr><td><code>-h/--help</code></td><td><a href="cli_reference.html">CLI reference</a></td><td>Show help for for different cli flags on commandline</td></tr>
 <tr><td><code>-w/--workspace WORKSPACE</code></td><td><a href="workspaces.html">Workspaces</a></td><td>Path to the workspace to use</td></tr>
@@ -194,22 +195,13 @@ In more detail, our loader is responsible for parsing a binary firmware file and
 <h2 id="firmwire_devpy-arguments"><a class="header" href="#firmwire_devpy-arguments">firmwire_dev.py arguments</a></h2>
 <p>Note: These arguments are mostly useful for development and debugging. As of now, they are part of <code>firmwire.py</code>, but will be moved to a custom <code>firmwire_dev.py</code> interface to clearly distinguish developer and user features in a future iteration of FirmWire.</p>
 <table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>--dump-at DUMP_AT</code></td><td>TBD</td><td>Dump the CPU state when the provided address is reached</td></tr>
 <tr><td><code>--debug</code></td><td>TBD</td><td>Enable FirmWire debugging</td></tr>
+<tr><td><code>--debug-peripheral</code></td><td>TBD</td><td>Enable debugging for specified peripheralas</td></tr>
 <tr><td><code>--avatar-debug</code></td><td>TBD</td><td>Enable debug logging for Avatar2</td></tr>
 <tr><td><code>--avatar-debug-memory</code></td><td>TBD</td><td>Enable Avatar2 remote memory debugging (useful when Peripherals crash)</td></tr>
 <tr><td><code>--unassigned_access_log</code></td><td>TBD</td><td>Print log messages when memory accesses to undefined memory occur</td></tr>
 <tr><td><code>--raw-asm-logging</code></td><td>TBD</td><td>Print assembly basic blocks as QEMU executes them. Useful for determining infinite loops.</td></tr>
 <tr><td><code>--trace-bb-translation</code></td><td>TBD</td><td>Print the address of each new Basic Block, useful to eval BBs reached during fuzzing.</td></tr>
-<tr><td><code>--heatmap</code></td><td>TBD</td><td>Run the heatmap analyzer</td></tr>
-<tr><td><code>--packet-log PACKET_LOG</code></td><td>TBD</td><td>Log PAL packets to the provided file</td></tr>
-<tr><td><code>--fuzz-heatmap</code></td><td>TBD</td><td>Generate heatmap data over fuzzing runs (SLOW!)</td></tr>
-</tbody></table>
-<h2 id="deprecated-cli-arguments"><a class="header" href="#deprecated-cli-arguments">Deprecated CLI arguments</a></h2>
-<p>The following flags have been used during FirmWire development, and are deprecated by now. They may be removed in future iterations of FirmWire.</p>
-<table><thead><tr><th>Argument</th><th>Deprecation Reason</th></tr></thead><tbody>
-<tr><td><code>--avatar-output-directory AVATAR_OUTPUT_DIRECTORY</code></td><td>Handled via Workspaces</td></tr>
-<tr><td><code>--snapshot-dir SNAPSHOT_DIR</code></td><td>Handled via Workspaces</td></tr>
 </tbody></table>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="workspaces"><a class="header" href="#workspaces">Workspaces</a></h1>
 <p>FirmWire uses workspaces tied to the specific firmware file under analysis.
@@ -487,9 +479,11 @@ These buffers use a simple packet-based data format for communication:</p>
 <tr><td>GLINK_ALLOC_BLOCK</td><td><code>gl.create_block(size)</code></td><td>Allocate a chunk of memory of given <code>size</code>. The address of the chunk can later be retrieved via <code>gl.access</code>.</td></tr>
 <tr><td>GLINK_CALL_FUNC</td><td><code>gl.call_function(fn, args)</code></td><td>Call function <code>fn</code> with args specified in <code>args</code>. <code>fn</code> must be of type int, and <code>args</code> a list of <code>ints</code>. The return code of the function can later be retrieved from <code>gl.access</code>.</td></tr>
 </tbody></table>
-<h3 id="guestlink-tips--tricks"><a class="header" href="#guestlink-tips--tricks">GuestLink Tips &amp; Tricks</a></h3>
-<h4 id="asynchronous-behavior"><a class="header" href="#asynchronous-behavior">Asynchronous behavior:</a></h4>
-<p>When using any of the commands, keep in mind that GLink acts fully asynchronously, i.e., when calling a function from Python, the according command is only written to the shared MMIO region. The GLink task in the baseband then has to parse and process the command before the result is available.</p>
+<h2 id="interactive-exploration-tips--tricks"><a class="header" href="#interactive-exploration-tips--tricks">Interactive exploration: Tips &amp; Tricks</a></h2>
+<h4 id="stopping-execution-on-startup"><a class="header" href="#stopping-execution-on-startup">Stopping execution on startup</a></h4>
+<p>FirmWire supports to stop after initialization. This means, you can interactively step through the full boot process, or control execution in a fine-grained manner after restoring a snapshot. All you need to do is to supply the <code>-S/--stop</code> flag to FirmWire on the command line.</p>
+<h4 id="guestlink-asynchronous-behavior"><a class="header" href="#guestlink-asynchronous-behavior">GuestLink: Asynchronous behavior:</a></h4>
+<p>When using GuestLink, keep in mind that GLink acts fully asynchronously, i.e., when calling a function from Python, the according command is only written to the shared MMIO region. The GLink task in the baseband then has to parse and process the command before the result is available.</p>
 <p>For better understanding, we provide a typical guestlink usage example below, allocating a block of size 0x100, and storing the result into chunk_addr:</p>
 <pre><code class="language-Python">In [1]: self.qemu.stop()
 In [2]: gl = self.get_peripheral('glink')
