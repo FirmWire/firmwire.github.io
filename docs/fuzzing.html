@@ -163,12 +163,13 @@ void fuzz_single()
 </code></pre>
 <p>First, <code>shannon.h</code> is included to provide shannon specific convenience functions (e.g. <code>uart_puts</code> and <code>pal_MemAlloc</code>).
 Then, <code>afl.h</code> is included, which provides the main functionality and API for fuzzing. The API is a slightly modified version as the one given by TriforceAFL and provides following four functions:</p>
-<table><thead><tr><th>Function</th><th>Purpose</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Function</th><th>Purpose</th></tr></thead><tbody>
 <tr><td><code>char * getWork(unsigned int *sizep)</code></td><td>Returns a buffer with fuzzing input and stores the input size into <code>sizep</code>.</td></tr>
 <tr><td><code>int startWork(unsigned int start, unsigned int end)</code></td><td>Start a fuzzing execution, while collecting coverage for code residing between <code>start</code> and <code>end</code>.</td></tr>
 <tr><td><code>int doneWork(int val)</code></td><td>Mark the end of a fuzzing iteration, providing <code>val</code> as return code to the fuzzer.</td></tr>
 <tr><td><code>int startForkserver(int ticks)</code></td><td>Starts AFL forkserver. <code>ticks</code> controls whether qemu ticks should be enabled or not.</td></tr>
 </tbody></table>
+</div>
 <p>Besides this API, the <code>afl.h</code>/<code>afl.c</code> files also provides the basic skeleton for the fuzzing loop inside a <code>task_main</code> function:</p>
 <pre><code class="language-C">void task_main() {
     [...]

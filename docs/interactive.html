@@ -151,6 +151,9 @@ Then, you can start up your local gdb build (we recommend <code>gdb-multiarch</c
 </code></pre>
 <p>Once connected, you should be able to set breakpoints, inspect and modify memory, as well as steering execution just as usual.
 Under the hood, FirmWire spawns a gdb server provided by the corresponding <a href="https://github.com/avatartwo/avatar2/blob/main/avatar2/plugins/gdbserver.py">avatar2 plugin</a>. This allows to transparently access both the memory provided by avatar-backed memory ranges (as in the case of  python peripherals), and emulated memory provided by PANDA.</p>
+<blockquote>
+<p><strong>NOTE:</strong> For ARM targets (Shannon), due to mixed ARM / Thumb2, you <em>may</em> need to set breakpoints at your target addresses +/- 1 byte. This is a limitation of QEMU's ARM gdbstub, causing breakpoints to be missed depending on the code's ISA mode.</p>
+</blockquote>
 <p>What's more, via gdb's <code>monitor</code> command you have directly access to the Python context of avatar2 gdb server, and allows you to execute simple Python statements. You even can access the global avatar object from gdb by executing:</p>
 <pre><code>monitor self.avatar
 </code></pre>
@@ -164,7 +167,7 @@ Under the hood, FirmWire spawns a gdb server provided by the corresponding <a hr
 </code></pre>
 <p>In here, you have full access to FirmWire's API, and your main interface to interact with the emulated baseband is its <code>machine</code> abstraction, which is directly accessible via <code>self</code>.</p>
 <p>While explaining the full API and available functions would be to extensive for this guide, below are the most important objects and methods provided by firmwire's machine object.</p>
-<table><thead><tr><th>Object</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Object</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>self.avatar</code></td><td>The avatar object, providing information about memory ranges and python peripherals</td></tr>
 <tr><td><code>self.loader</code></td><td>The vendor specific loader, providing information about the loaded firmware image.</td></tr>
 <tr><td><code>self.loader.symbol_table</code></td><td>The symbols extracted by the loader, using <a href="pattern_db.html">patternDB</a> and auxiliary information.</td></tr>
@@ -172,10 +175,11 @@ Under the hood, FirmWire spawns a gdb server provided by the corresponding <a hr
 <tr><td><code>self.panda</code></td><td>Handle to libpanda, the PANDA library with python bindings</td></tr>
 <tr><td><code>self.qemu</code></td><td>Direct handle to avatar's PyPanda target, the avatar wrapper around libpanda. Follows avatar2's target API.</td></tr>
 </tbody></table>
+</div>
 <p>To steer execution and inspecting memory, the <code>self.qemu</code> object will most likely be your bread and butter.
 It provides functions such as <code>cont()</code>, <code>stop()</code>, <code>set_breakpoint()</code>, <code>read_memory()</code> or <code>write_memory()</code> - more information can be found over in handbook for <a href="">avatar2</a>.</p>
 <p>Besides these objects and capabilities provided by the PANDA and avatar2 frameworks, the FirmWire also provide a couple of additional methods to make exploration easier:</p>
-<table><thead><tr><th>Method/Signature</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Method/Signature</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>self.get_tasks()</code></td><td>Retrieves the RTOS tasks automatically identified by FirmWire in its abstract Python representation.</td></tr>
 <tr><td><code>self.get_peripheral(name)</code></td><td>Retrieve a handle to the Python peripheral with specified name.</td></tr>
 <tr><td><code>self.restore_snapshot(snapshot_name)</code></td><td>Restores <a href="workspaces.html">Snapshot</a> with given name.</td></tr>
@@ -183,6 +187,7 @@ It provides functions such as <code>cont()</code>, <code>stop()</code>, <code>se
 <tr><td><code>self.snapshot(snapshot_name)</code></td><td>Create snapshot of current execution state with given name.</td></tr>
 <tr><td><code>self.set_breakpoint(address, handler)</code></td><td>Set a breakpoint at specified address and execute the code provided in <code>handler</code> when hit.</td></tr>
 </tbody></table>
+</div>
 <p>For Shannon basebands, the interactive capabilities are further extended by the special GuestLink peripheral.</p>
 <h2 id="guestlink-shannon-only"><a class="header" href="#guestlink-shannon-only">GuestLink (Shannon only)</a></h2>
 <p>The GuestLink is a combination of custom task injected into the baseband and python peripheral, allowing for <em>interaction</em> with the emulated baseband. To make use of it, start FirmWire both with activated console and injected <code>glink</code> task:</p>
@@ -212,13 +217,14 @@ These buffers use a simple packet-based data format for communication:</p>
 };
 </code></pre>
 <p>Currently, GuestLinks implementation only allows for commands from Python to the emulated baseband. The available commands are:</p>
-<table><thead><tr><th>CMD</th><th>PythonAPI</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>CMD</th><th>PythonAPI</th><th>Description</th></tr></thead><tbody>
 <tr><td>GLINK_SEND_QUEUE_INDIR</td><td><code>gl.send_queue(True, src_qid_name, dst_qid_name, msg_group, payload)</code></td><td>Sends specified message to baseband internal queue. Payload is provided as allocated memory chunk, to be free'd by the baseband.</td></tr>
 <tr><td>GLINK_SEND_QUEUE</td><td><code>gl.send_queue(False, src_qid_name, dst_qid_name, msg_group, payload)</code></td><td>Sends specified message to baseband internal queue. Payload is inlined with the msg_struct.</td></tr>
 <tr><td>GLINK_SET_EVENT</td><td><code>gl.set_event(event)</code></td><td>Sets the baseband internal event. <code>event</code> can either be int (event number) or bytes (event name).</td></tr>
 <tr><td>GLINK_ALLOC_BLOCK</td><td><code>gl.create_block(size)</code></td><td>Allocate a chunk of memory of given <code>size</code>. The address of the chunk can later be retrieved via <code>gl.access</code>.</td></tr>
 <tr><td>GLINK_CALL_FUNC</td><td><code>gl.call_function(fn, args)</code></td><td>Call function <code>fn</code> with args specified in <code>args</code>. <code>fn</code> must be of type int, and <code>args</code> a list of <code>ints</code>. The return code of the function can later be retrieved from <code>gl.access</code>.</td></tr>
 </tbody></table>
+</div>
 <h2 id="interactive-exploration-tips--tricks"><a class="header" href="#interactive-exploration-tips--tricks">Interactive exploration: Tips &amp; Tricks</a></h2>
 <h4 id="stopping-execution-on-startup"><a class="header" href="#stopping-execution-on-startup">Stopping execution on startup</a></h4>
 <p>FirmWire supports to stop after initialization. This means, you can interactively step through the full boot process, or control execution in a fine-grained manner after restoring a snapshot. All you need to do is to supply the <code>-S/--stop</code> flag to FirmWire on the command line.</p>

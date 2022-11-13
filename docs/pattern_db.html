@@ -191,7 +191,7 @@ Lastly, the post_lookup function takes a reference to a python function to be ex
 <p>Here, <code>self</code> is a reference to the ShannonMachine, <code>sym</code> a reference to the PatternDB symbol, <code>data</code> the memory searched for, and <code>offset</code> the start offset for the search considering the <em>virtual</em> location of the <code>data</code> block. 
 The patternDB symbol <code>sym</code>, on the other hand, contains information about address, name, and type of the symbol.</p>
 <h2 id="pattern-keyword-details"><a class="header" href="#pattern-keyword-details">Pattern KeyWord Details</a></h2>
-<table><thead><tr><th>Keyword</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Keyword</th><th>Description</th></tr></thead><tbody>
 <tr><td>name</td><td>The name of the pattern and the resulting symbol (string)</td></tr>
 <tr><td>pattern</td><td>One ore more memory patterns which will create the result on match.</td></tr>
 <tr><td>lookup</td><td>Function to use instead of pattern. Parameters are the data block to be searched and the offset to start. Expected to return <code>None</code> or integer denoting the address.</td></tr>
@@ -203,6 +203,7 @@ The patternDB symbol <code>sym</code>, on the other hand, contains information a
 <tr><td>offset_end</td><td>Same as offset, but caluclate from the end of matched pattern, rather than from the start.</td></tr>
 <tr><td>align</td><td>Memory aligment required for found matches.</td></tr>
 </tbody></table>
+</div>
 <h2 id="defining-your-own-pattern"><a class="header" href="#defining-your-own-pattern">Defining your own Pattern</a></h2>
 <p>You want to define your own pattern? Great!
 Just extend the <code>pattern.py</code> file in the corresponding vendor plugin to include your pattern, and it should be automatically scanned for during the next start of FirmWire.</p>

@@ -140,7 +140,7 @@
                         <h1 id="command-line-interface-reference"><a class="header" href="#command-line-interface-reference">Command Line Interface Reference</a></h1>
 <p>This part of our documentation works as quick-reference to all the <code>firmwire.py</code> and <code>firmwire_dev.py</code> CLI arguments, and provides links about where they are covered. For more information about the single command line flags, you can also run FirmWire with the <code>--help</code> flag.</p>
 <h2 id="firmwirepy-arguments"><a class="header" href="#firmwirepy-arguments">firmwire.py arguments</a></h2>
-<table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>modem_file</code></td><td><a href="getting_started.html">Getting Started</a></td><td>The modem file FirmWire shall create an emulation environment for. Only mandatory argument(!)</td></tr>
 <tr><td><code>--consecutive-ports CONSECUTIVE_PORTS</code></td><td><a href="getting_started.html">Getting Started</a></td><td>Choose consecutive ports for the any listening sockets (e.g. QEMU's GDB &amp; QMP), starting with the port provided.</td></tr>
 <tr><td><code>-h/--help</code></td><td><a href="cli_reference.html">CLI reference</a></td><td>Show help for for different cli flags on commandline</td></tr>
@@ -162,9 +162,10 @@
 <tr><td><code>--shannon-loader-nv_data NV_DATA</code></td><td>TBD</td><td>(Shannon only) Specify the NV_DATA to be used</td></tr>
 <tr><td><code>--mtk-loader-nv_data NV_DATA</code></td><td>TBD</td><td>(MediaTek only) Specify the NV_DATA to be used</td></tr>
 </tbody></table>
+</div>
 <h2 id="developer-options"><a class="header" href="#developer-options">Developer options</a></h2>
 <p>Note: These arguments are mostly useful for development and debugging. As of now, they are part of <code>firmwire.py</code>, but will be moved to a custom <code>firmwire_dev.py</code> interface to clearly distinguish developer and user features in a future iteration of FirmWire.</p>
-<table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>--debug</code></td><td>TBD</td><td>Enable FirmWire debugging</td></tr>
 <tr><td><code>--debug-peripheral</code></td><td>TBD</td><td>Enable debugging for specified peripheralas</td></tr>
 <tr><td><code>--avatar-debug</code></td><td>TBD</td><td>Enable debug logging for Avatar2</td></tr>
@@ -173,7 +174,7 @@
 <tr><td><code>--raw-asm-logging</code></td><td>TBD</td><td>Print assembly basic blocks as QEMU executes them. Useful for determining infinite loops.</td></tr>
 <tr><td><code>--trace-bb-translation</code></td><td>TBD</td><td>Print the address of each new Basic Block, useful to eval BBs reached during fuzzing.</td></tr>
 </tbody></table>
-
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

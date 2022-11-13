@@ -250,7 +250,7 @@ In more detail, our loader is responsible for parsing a binary firmware file and
 <div style="break-before: page; page-break-before: always;"></div><h1 id="command-line-interface-reference"><a class="header" href="#command-line-interface-reference">Command Line Interface Reference</a></h1>
 <p>This part of our documentation works as quick-reference to all the <code>firmwire.py</code> and <code>firmwire_dev.py</code> CLI arguments, and provides links about where they are covered. For more information about the single command line flags, you can also run FirmWire with the <code>--help</code> flag.</p>
 <h2 id="firmwirepy-arguments"><a class="header" href="#firmwirepy-arguments">firmwire.py arguments</a></h2>
-<table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>modem_file</code></td><td><a href="getting_started.html">Getting Started</a></td><td>The modem file FirmWire shall create an emulation environment for. Only mandatory argument(!)</td></tr>
 <tr><td><code>--consecutive-ports CONSECUTIVE_PORTS</code></td><td><a href="getting_started.html">Getting Started</a></td><td>Choose consecutive ports for the any listening sockets (e.g. QEMU's GDB &amp; QMP), starting with the port provided.</td></tr>
 <tr><td><code>-h/--help</code></td><td><a href="cli_reference.html">CLI reference</a></td><td>Show help for for different cli flags on commandline</td></tr>
@@ -272,9 +272,10 @@ In more detail, our loader is responsible for parsing a binary firmware file and
 <tr><td><code>--shannon-loader-nv_data NV_DATA</code></td><td>TBD</td><td>(Shannon only) Specify the NV_DATA to be used</td></tr>
 <tr><td><code>--mtk-loader-nv_data NV_DATA</code></td><td>TBD</td><td>(MediaTek only) Specify the NV_DATA to be used</td></tr>
 </tbody></table>
+</div>
 <h2 id="developer-options"><a class="header" href="#developer-options">Developer options</a></h2>
 <p>Note: These arguments are mostly useful for development and debugging. As of now, they are part of <code>firmwire.py</code>, but will be moved to a custom <code>firmwire_dev.py</code> interface to clearly distinguish developer and user features in a future iteration of FirmWire.</p>
-<table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Argument</th><th>Covered in</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>--debug</code></td><td>TBD</td><td>Enable FirmWire debugging</td></tr>
 <tr><td><code>--debug-peripheral</code></td><td>TBD</td><td>Enable debugging for specified peripheralas</td></tr>
 <tr><td><code>--avatar-debug</code></td><td>TBD</td><td>Enable debug logging for Avatar2</td></tr>
@@ -283,7 +284,7 @@ In more detail, our loader is responsible for parsing a binary firmware file and
 <tr><td><code>--raw-asm-logging</code></td><td>TBD</td><td>Print assembly basic blocks as QEMU executes them. Useful for determining infinite loops.</td></tr>
 <tr><td><code>--trace-bb-translation</code></td><td>TBD</td><td>Print the address of each new Basic Block, useful to eval BBs reached during fuzzing.</td></tr>
 </tbody></table>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="workspaces"><a class="header" href="#workspaces">Workspaces</a></h1>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="workspaces"><a class="header" href="#workspaces">Workspaces</a></h1>
 <p>FirmWire uses workspaces tied to the specific firmware file under analysis.
 These workspaces contain a variety of useful files, most notably logs emitted by the avatar2-orchestration, the configurable machine definition, and a qcow2-image used for FirmWire's snapshotting mechanism, as well as vendor-specific files and directories.</p>
 <p>By default, FirmWire creates a workspace at the very same directory where the modem file is located at, but this behavior can be overriden via the <code>-w/--workspace</code> command line flag.</p>
@@ -350,7 +351,7 @@ Lastly, the post_lookup function takes a reference to a python function to be ex
 <p>Here, <code>self</code> is a reference to the ShannonMachine, <code>sym</code> a reference to the PatternDB symbol, <code>data</code> the memory searched for, and <code>offset</code> the start offset for the search considering the <em>virtual</em> location of the <code>data</code> block. 
 The patternDB symbol <code>sym</code>, on the other hand, contains information about address, name, and type of the symbol.</p>
 <h2 id="pattern-keyword-details"><a class="header" href="#pattern-keyword-details">Pattern KeyWord Details</a></h2>
-<table><thead><tr><th>Keyword</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Keyword</th><th>Description</th></tr></thead><tbody>
 <tr><td>name</td><td>The name of the pattern and the resulting symbol (string)</td></tr>
 <tr><td>pattern</td><td>One ore more memory patterns which will create the result on match.</td></tr>
 <tr><td>lookup</td><td>Function to use instead of pattern. Parameters are the data block to be searched and the offset to start. Expected to return <code>None</code> or integer denoting the address.</td></tr>
@@ -362,6 +363,7 @@ The patternDB symbol <code>sym</code>, on the other hand, contains information a
 <tr><td>offset_end</td><td>Same as offset, but caluclate from the end of matched pattern, rather than from the start.</td></tr>
 <tr><td>align</td><td>Memory aligment required for found matches.</td></tr>
 </tbody></table>
+</div>
 <h2 id="defining-your-own-pattern"><a class="header" href="#defining-your-own-pattern">Defining your own Pattern</a></h2>
 <p>You want to define your own pattern? Great!
 Just extend the <code>pattern.py</code> file in the corresponding vendor plugin to include your pattern, and it should be automatically scanned for during the next start of FirmWire.</p>
@@ -485,6 +487,9 @@ Then, you can start up your local gdb build (we recommend <code>gdb-multiarch</c
 </code></pre>
 <p>Once connected, you should be able to set breakpoints, inspect and modify memory, as well as steering execution just as usual.
 Under the hood, FirmWire spawns a gdb server provided by the corresponding <a href="https://github.com/avatartwo/avatar2/blob/main/avatar2/plugins/gdbserver.py">avatar2 plugin</a>. This allows to transparently access both the memory provided by avatar-backed memory ranges (as in the case of  python peripherals), and emulated memory provided by PANDA.</p>
+<blockquote>
+<p><strong>NOTE:</strong> For ARM targets (Shannon), due to mixed ARM / Thumb2, you <em>may</em> need to set breakpoints at your target addresses +/- 1 byte. This is a limitation of QEMU's ARM gdbstub, causing breakpoints to be missed depending on the code's ISA mode.</p>
+</blockquote>
 <p>What's more, via gdb's <code>monitor</code> command you have directly access to the Python context of avatar2 gdb server, and allows you to execute simple Python statements. You even can access the global avatar object from gdb by executing:</p>
 <pre><code>monitor self.avatar
 </code></pre>
@@ -498,7 +503,7 @@ Under the hood, FirmWire spawns a gdb server provided by the corresponding <a hr
 </code></pre>
 <p>In here, you have full access to FirmWire's API, and your main interface to interact with the emulated baseband is its <code>machine</code> abstraction, which is directly accessible via <code>self</code>.</p>
 <p>While explaining the full API and available functions would be to extensive for this guide, below are the most important objects and methods provided by firmwire's machine object.</p>
-<table><thead><tr><th>Object</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Object</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>self.avatar</code></td><td>The avatar object, providing information about memory ranges and python peripherals</td></tr>
 <tr><td><code>self.loader</code></td><td>The vendor specific loader, providing information about the loaded firmware image.</td></tr>
 <tr><td><code>self.loader.symbol_table</code></td><td>The symbols extracted by the loader, using <a href="pattern_db.html">patternDB</a> and auxiliary information.</td></tr>
@@ -506,10 +511,11 @@ Under the hood, FirmWire spawns a gdb server provided by the corresponding <a hr
 <tr><td><code>self.panda</code></td><td>Handle to libpanda, the PANDA library with python bindings</td></tr>
 <tr><td><code>self.qemu</code></td><td>Direct handle to avatar's PyPanda target, the avatar wrapper around libpanda. Follows avatar2's target API.</td></tr>
 </tbody></table>
+</div>
 <p>To steer execution and inspecting memory, the <code>self.qemu</code> object will most likely be your bread and butter.
 It provides functions such as <code>cont()</code>, <code>stop()</code>, <code>set_breakpoint()</code>, <code>read_memory()</code> or <code>write_memory()</code> - more information can be found over in handbook for <a href="">avatar2</a>.</p>
 <p>Besides these objects and capabilities provided by the PANDA and avatar2 frameworks, the FirmWire also provide a couple of additional methods to make exploration easier:</p>
-<table><thead><tr><th>Method/Signature</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Method/Signature</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>self.get_tasks()</code></td><td>Retrieves the RTOS tasks automatically identified by FirmWire in its abstract Python representation.</td></tr>
 <tr><td><code>self.get_peripheral(name)</code></td><td>Retrieve a handle to the Python peripheral with specified name.</td></tr>
 <tr><td><code>self.restore_snapshot(snapshot_name)</code></td><td>Restores <a href="workspaces.html">Snapshot</a> with given name.</td></tr>
@@ -517,6 +523,7 @@ It provides functions such as <code>cont()</code>, <code>stop()</code>, <code>se
 <tr><td><code>self.snapshot(snapshot_name)</code></td><td>Create snapshot of current execution state with given name.</td></tr>
 <tr><td><code>self.set_breakpoint(address, handler)</code></td><td>Set a breakpoint at specified address and execute the code provided in <code>handler</code> when hit.</td></tr>
 </tbody></table>
+</div>
 <p>For Shannon basebands, the interactive capabilities are further extended by the special GuestLink peripheral.</p>
 <h2 id="guestlink-shannon-only"><a class="header" href="#guestlink-shannon-only">GuestLink (Shannon only)</a></h2>
 <p>The GuestLink is a combination of custom task injected into the baseband and python peripheral, allowing for <em>interaction</em> with the emulated baseband. To make use of it, start FirmWire both with activated console and injected <code>glink</code> task:</p>
@@ -546,13 +553,14 @@ These buffers use a simple packet-based data format for communication:</p>
 };
 </code></pre>
 <p>Currently, GuestLinks implementation only allows for commands from Python to the emulated baseband. The available commands are:</p>
-<table><thead><tr><th>CMD</th><th>PythonAPI</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>CMD</th><th>PythonAPI</th><th>Description</th></tr></thead><tbody>
 <tr><td>GLINK_SEND_QUEUE_INDIR</td><td><code>gl.send_queue(True, src_qid_name, dst_qid_name, msg_group, payload)</code></td><td>Sends specified message to baseband internal queue. Payload is provided as allocated memory chunk, to be free'd by the baseband.</td></tr>
 <tr><td>GLINK_SEND_QUEUE</td><td><code>gl.send_queue(False, src_qid_name, dst_qid_name, msg_group, payload)</code></td><td>Sends specified message to baseband internal queue. Payload is inlined with the msg_struct.</td></tr>
 <tr><td>GLINK_SET_EVENT</td><td><code>gl.set_event(event)</code></td><td>Sets the baseband internal event. <code>event</code> can either be int (event number) or bytes (event name).</td></tr>
 <tr><td>GLINK_ALLOC_BLOCK</td><td><code>gl.create_block(size)</code></td><td>Allocate a chunk of memory of given <code>size</code>. The address of the chunk can later be retrieved via <code>gl.access</code>.</td></tr>
 <tr><td>GLINK_CALL_FUNC</td><td><code>gl.call_function(fn, args)</code></td><td>Call function <code>fn</code> with args specified in <code>args</code>. <code>fn</code> must be of type int, and <code>args</code> a list of <code>ints</code>. The return code of the function can later be retrieved from <code>gl.access</code>.</td></tr>
 </tbody></table>
+</div>
 <h2 id="interactive-exploration-tips--tricks"><a class="header" href="#interactive-exploration-tips--tricks">Interactive exploration: Tips &amp; Tricks</a></h2>
 <h4 id="stopping-execution-on-startup"><a class="header" href="#stopping-execution-on-startup">Stopping execution on startup</a></h4>
 <p>FirmWire supports to stop after initialization. This means, you can interactively step through the full boot process, or control execution in a fine-grained manner after restoring a snapshot. All you need to do is to supply the <code>-S/--stop</code> flag to FirmWire on the command line.</p>
@@ -603,12 +611,13 @@ void fuzz_single()
 </code></pre>
 <p>First, <code>shannon.h</code> is included to provide shannon specific convenience functions (e.g. <code>uart_puts</code> and <code>pal_MemAlloc</code>).
 Then, <code>afl.h</code> is included, which provides the main functionality and API for fuzzing. The API is a slightly modified version as the one given by TriforceAFL and provides following four functions:</p>
-<table><thead><tr><th>Function</th><th>Purpose</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Function</th><th>Purpose</th></tr></thead><tbody>
 <tr><td><code>char * getWork(unsigned int *sizep)</code></td><td>Returns a buffer with fuzzing input and stores the input size into <code>sizep</code>.</td></tr>
 <tr><td><code>int startWork(unsigned int start, unsigned int end)</code></td><td>Start a fuzzing execution, while collecting coverage for code residing between <code>start</code> and <code>end</code>.</td></tr>
 <tr><td><code>int doneWork(int val)</code></td><td>Mark the end of a fuzzing iteration, providing <code>val</code> as return code to the fuzzer.</td></tr>
 <tr><td><code>int startForkserver(int ticks)</code></td><td>Starts AFL forkserver. <code>ticks</code> controls whether qemu ticks should be enabled or not.</td></tr>
 </tbody></table>
+</div>
 <p>Besides this API, the <code>afl.h</code>/<code>afl.c</code> files also provides the basic skeleton for the fuzzing loop inside a <code>task_main</code> function:</p>
 <pre><code class="language-C">void task_main() {
     [...]
@@ -741,19 +750,21 @@ The following command line will replay a test case called <code>crash.bin</code>
 As such, we are happy to showcase how FirmWire is used! On this page, you can find details to vulnerabilties found with FirmWire, talks about the framework, and blogposts describing its usage.</p>
 <h2 id="vulnerabilities"><a class="header" href="#vulnerabilities">Vulnerabilities</a></h2>
 <p>So far, FirmWire was involved in finding the following vulnerabilities:</p>
-<table><thead><tr><th>CVE</th><th>Severity</th><th>Finder</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>CVE</th><th>Severity</th><th>Finder</th><th>Description</th></tr></thead><tbody>
 <tr><td>CVE-2021-25479</td><td>7.2 (high)</td><td>Team FirmWire</td><td>A possible heap-based buffer overflow vulnerability in Exynos CP Chipset prior to SMR Oct-2021 Release 1 allows arbitrary memory write and code execution.</td></tr>
 <tr><td>CVE-2021-25478</td><td>7.2 (high)</td><td>Team FirmWire</td><td>A possible stack-based buffer overflow vulnerability in Exynos CP Chipset prior to SMR Oct-2021 Release 1 allows arbitrary memory write and code execution.</td></tr>
 <tr><td>CVE-2020-25279</td><td>9.8 (critical)</td><td>Team FirmWire</td><td>An issue was discovered on Samsung mobile devices with O(8.x), P(9.0), and Q(10.0) (Exynos chipsets) software. The baseband component has a buffer overflow via an abnormal SETUP message, leading to execution of arbitrary code. The Samsung ID is SVE-2020-18098 (September 2020).</td></tr>
 <tr><td>CVE-2021-25477</td><td>4.9 (medium)</td><td>Team FirmWire</td><td>An improper error handling in Mediatek RRC Protocol stack prior to SMR Oct-2021 Release 1 allows modem crash and remote denial of service.</td></tr>
 </tbody></table>
+</div>
 <h2 id="talks"><a class="header" href="#talks">Talks</a></h2>
-<table><thead><tr><th>Title</th><th>Where</th><th>Who</th><th>Links</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Title</th><th>Where</th><th>Who</th><th>Links</th><th>Description</th></tr></thead><tbody>
 <tr><td>Emulating Samsung's Baseband for Security Testing</td><td>Blackhat USA'20</td><td>Team FirmWire (Grant &amp; Marius)</td><td><a href="https://www.youtube.com/watch?v=wkWUU8820ro">youtube</a> <a href="http://i.blackhat.com/USA-20/Wednesday/us-20-Hernandez-Emulating-Samsungs-Baseband-For-Security-Testing.pdf">slides</a></td><td>Talk about FirmWire's first steps (back then, it had the working title ShannonEE). Discusses the fundamental architecture of the framework.</td></tr>
 <tr><td>Reversing &amp; Emulating Samsung’s Shannon Baseband</td><td>Hardwaer.io NL'20</td><td>Team FirmWire (Grant &amp; Marius)</td><td><a href="https://www.youtube.com/watch?v=ypxgXNtvlgA">youtube</a> <a href="https://hardwear.io/netherlands-2020/presentation/samsung-baseband-hardwear-io-nl-2020.pdf">slides</a></td><td>Talk about the reverse engineering on Shannon-based modems which was required to build FirmWire.</td></tr>
 <tr><td>FirmWire: Transparent Dynamic Analysis for Cellular Baseband Firmware</td><td>NDSS'22</td><td>Team FirmWire (Grant)</td><td>TBD</td><td>Academic presentation of the FirmWire paper.</td></tr>
 <tr><td>FirmWire: Taking Baseband Security Analysis to the Next Level</td><td>CanSecWest'22</td><td>Team FirmWire (Grant, Marius &amp; Dominik</td><td>TBD</td><td></td></tr>
 </tbody></table>
+</div>
 <h2 id="blog-posts"><a class="header" href="#blog-posts">Blog posts</a></h2>
 <p>So far, we are not aware of any blog posts about FirmWire, but this may change in the future. ;)</p>
 <h2 id="adding-your-vulnerability-talk-or-blogpost-to-this-trophy-wall"><a class="header" href="#adding-your-vulnerability-talk-or-blogpost-to-this-trophy-wall">Adding your Vulnerability, Talk, or Blogpost to this Trophy Wall</a></h2>
